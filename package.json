@@ -1,0 +1,27 @@
+{
+    "name": "@gridspace/app-server",
+    "version": "0.0.3",
+    "license": "MIT",
+    "private": false,
+    "author": "Stewart Allen <so@a3z.co>",
+    "keywords": "application web server supporting web sockets",
+    "main": "app-server.js",
+    "bin": {
+        "app-server": "./app-server-run.js"
+    },
+    "files": [
+        "package.json",
+        "app-server.js",
+        "app-server-run.js"
+    ],
+    "dependencies": {
+        "@gridspace/log-util": "^0.0.3",
+        "compression": "^1.7.2",
+        "connect": "^3.6.6",
+        "minimist": "^1.2.5",
+        "moment": "^2.22.0",
+        "request": "^2.87.0",
+        "serve-static": "^1.13.2",
+        "ws": "^7.2.1"
+    }
+}
