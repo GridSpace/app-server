@@ -12,6 +12,7 @@ const moddirs = {};
 const chain = Connect().use(Compression()).use(setup);
 const ipLocal = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
 const env = {};
+
 let datadir;
 let logdir;
 let logger;
@@ -68,7 +69,6 @@ function noCache(res) {
 }
 
 function redirect(res, url, type) {
-console.log('redirect', url);
     res.writeHead(type || 307, { "Location": url });
     res.end();
 }
@@ -76,9 +76,12 @@ console.log('redirect', url);
 function reply404(req, res) {
     logger.emit([
         '404',
+        req.method,
+        req.headers['host'] || '',
         req.url,
         req.socket.remoteAddress,
-        req.headers
+        req.headers['origin'] || '',
+        req.headers['user-agent'] || ''
     ]);
     res.writeHead(404);
     res.end("[404]");
@@ -117,14 +120,14 @@ function setup(req, res, next) {
         return undefined;
     }
 
-    // logger.emit([
-    //     req.method,
-    //     req.headers['host'] || '',
-    //     req.url,
-    //     req.socket.remoteAddress,
-    //     req.headers['origin'] || '',
-    //     req.headers['user-agent'] || ''
-    // ]);
+    if (env.log || env.debug) logger.emit([
+        req.method,
+        req.headers['host'] || '',
+        req.url,
+        req.socket.remoteAddress,
+        req.headers['origin'] || '',
+        req.headers['user-agent'] || ''
+    ]);
 
     next();
 }
@@ -196,7 +199,7 @@ function handleStatic(prefix, path, options) {
         if (prefix && req.url.indexOf(prefix) === 0) {
             let nurl = req.url.substring(prefix.length);
             if (nurl === '') {
-                nurl = prefix;
+                nurl = "/";
             } else if (nurl.charAt(0) !== '/') {
                 nurl = `/${nurl}`;
             }
@@ -216,7 +219,7 @@ function updateApps(dir) {
 
     fs.readdirSync(dir).forEach(file => {
         let path = `${dir}/${file}`;
-        if (isfile(`${path}/app.json`)) {
+        if (isfile(`${path}/app.json`) || isfile(`${path}/app.js`)) {
             updateApp(path);
         }
     });
@@ -230,8 +233,8 @@ function updateApp(dir, force) {
         let tmod = lastmod(path);
         if (!force && orec && orec.tmod >= tmod) return;
 
-        let meta = JSON.parse(fs.readFileSync(path));
-        let name = meta.name || dir;
+        let meta = tmod ? JSON.parse(fs.readFileSync(path)) : {};
+        let name = meta.name || dir.split("/").pop();
         let main = meta.main || "app.js";
         let host = meta.host || [ "*" ];
 
