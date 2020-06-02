@@ -98,7 +98,7 @@ function remoteIP(req) {
         ip = isNotLocal(fwd) || sra || cra || '',
         ipa = ip.split(',');
     if (ip === '' || ipa.length > 1) {
-        helper.log({remote:ipa, fwd, sra, cra});
+        logger.log({remote:ipa, fwd, sra, cra});
     }
     return ipa[0];
 }
