@@ -1,3 +1,5 @@
+/** Copyright Stewart Allen <sa@grid.space> -- All Rights Reserved */
+
 const fs = require('fs');
 const url = require('url');
 const logu = require('@gridspace/log-util').default;
@@ -254,7 +256,8 @@ function updateApp(dir, force) {
             log({mod_unload: name, error});
         }
 
-        let mapp = require.resolve(`./${dir}/${main}`);
+        let root = dir.charAt(0) !== '/' ? `${process.cwd()}/` : '';
+        let mapp = require.resolve(`${root}${dir}/${main}`);
         delete require.cache[mapp];
         let init = require(mapp);
         if (typeof(init) !== 'function') {
@@ -413,7 +416,7 @@ function init(options) {
         }, chain).listen(opts.portsec));
     }
 
-    Object.assign(env, opts.env);
+    Object.assign(env, opts.env || opts);
 
     updateApps(apps);
     setInterval(() => { updateApps(apps)}, 5000);
@@ -467,6 +470,7 @@ function init(options) {
 
 if (!module.parent) {
     let args = require('minimist')(process.argv.slice(2));
+
     init({
         env: args,
         logs: args.logs,

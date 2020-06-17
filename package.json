@@ -1,13 +1,13 @@
 {
     "name": "@gridspace/app-server",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "license": "MIT",
     "private": false,
     "author": "Stewart Allen <sa@grid.space>",
     "keywords": "application web server framework",
     "main": "app-server.js",
     "bin": {
-        "app-server": "./app-server-run.js"
+        "gs-app-server": "./app-server-run.js"
     },
     "files": [
         "package.json",
