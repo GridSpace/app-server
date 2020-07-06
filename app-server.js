@@ -300,7 +300,8 @@ function updateApp(dir, force) {
             util: {
                 mkdir,
                 lastmod,
-                datadir: (dn) => { return mkdir(`${datadir}/${name}/${dn}`) }
+                datadir: (dn) => { return mkdir(`${datadir}/${name}/${dn}`) },
+                globdir: (dn) => { return mkdir(`${datadir}/server/${dn}`) }
             },
             http: {
                 noCache,
