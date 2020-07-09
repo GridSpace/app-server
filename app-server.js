@@ -478,7 +478,10 @@ if (!module.parent) {
         apps: args.apps,
         data: args.data,
         port: args.port || args.http,
-        portsec: args.https
+        portsec: args.https,
+        certdir: args.certdir,
+        pemkey: args.pemkey,
+        pemcert: args.pemcert
     });
 } else {
     module.exports = init;
