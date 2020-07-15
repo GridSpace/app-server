@@ -112,7 +112,8 @@ function setup(req, res, next) {
         ip: remoteIP(req),
         path: parsed.pathname,
         query: parsed.query,
-        params: new url.URLSearchParams(parsed.query)
+        params: new url.URLSearchParams(parsed.query),
+        secure: req.connection.encrypted ? true : false
     };
 
     req.app.params.getBoolean = (key) => {
@@ -274,6 +275,7 @@ function updateApp(dir, force) {
             path,
             tmod,
             host,
+            meta,
             wss: {}
         };
         let lpre = `[${name}]`;
@@ -345,7 +347,11 @@ function updateApp(dir, force) {
                 }
                 let host = req.headers.host;
                 if (mod.host.indexOf(host) >= 0 || mod.host.indexOf('*') >= 0) {
-                    if (!mod.test || mod.test(req)) {
+                    // allow module to require http or https (blank for both)
+                    let secok = ( mod.meta.secure === undefined || mod.meta.secure === req.app.secure );
+                    // allow module to optionally test a request (like cookie switching)
+                    let modok = ( !mod.test || mod.test(req) );
+                    if (modok && secok) {
                         return mod.app.handle(req, res, next);
                     }
                 }
