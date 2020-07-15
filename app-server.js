@@ -239,13 +239,10 @@ function updateApp(dir, force) {
         let name = meta.name || dir.split("/").pop();
         let main = meta.main || "app.js";
         let host = meta.host || [ "*" ];
+        let hasMain = isfile(`${dir}/${main}`);
 
         if (name === "server") {
             throw `invalid name (reserved): ${name}`;
-        }
-        if (!isfile(`${dir}/${main}`)) {
-            if (orec) orec.disabled = true;
-            throw `invalid main: ${path}`;
         }
         if (typeof(host) === 'string') {
             host = [ host ];
@@ -256,13 +253,19 @@ function updateApp(dir, force) {
             log({mod_unload: name, error});
         }
 
-        let root = dir.charAt(0) !== '/' ? `${process.cwd()}/` : '';
-        let mapp = require.resolve(`${root}${dir}/${main}`);
-        delete require.cache[mapp];
-        let init = require(mapp);
-        if (typeof(init) !== 'function') {
-            if (orec) orec.disabled = true;
-            throw `invalid app init function: ${path}`;
+        let init = function() {};
+
+        // replace empty init() with loaded module, if present
+        if (hasMain) {
+            let root = dir.charAt(0) !== '/' ? `${process.cwd()}/` : '';
+            let mapp = require.resolve(`${root}${dir}/${main}`);
+            delete require.cache[mapp];
+            init = require(mapp);
+
+            if (typeof(init) !== 'function') {
+                if (orec) orec.disabled = true;
+                throw `invalid app init function: ${path}`;
+            }
         }
 
         let app = Connect();
