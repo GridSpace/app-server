@@ -99,17 +99,19 @@ function remoteIP(req) {
         cra = req.connection.remoteAddress,
         ip = isNotLocal(fwd) || sra || cra || '',
         ipa = ip.split(',');
-    if (ip === '' || ipa.length > 1) {
-        logger.log({remote:ipa, fwd, sra, cra});
-    }
-    return ipa[0];
+    // if (ip === '' || ipa.length > 1) {
+    //     logger.log({remote:ipa, fwd, sra, cra});
+    // }
+    return ipa;
 }
 
 function setup(req, res, next) {
     const parsed = url.parse(req.url, true);
+    const ips = remoteIP(req);
 
     req.app = req.gs = {
-        ip: remoteIP(req),
+        ip: ips[0],
+        ips: ips,
         path: parsed.pathname,
         query: parsed.query,
         params: new url.URLSearchParams(parsed.query),
