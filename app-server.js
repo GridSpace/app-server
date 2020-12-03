@@ -29,7 +29,12 @@ Array.prototype.appendAll = function(a) {
 };
 
 function log() {
-    logger.log('[appserver]',...arguments);
+    try {
+        logger.log('[appserver]',...arguments);
+    } catch (e) {
+        console.log('[ERROR]', e);
+        console.log('[appserver]', ...arguments);
+    }
 }
 
 function lastmod(path) {
