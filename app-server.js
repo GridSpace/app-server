@@ -32,7 +32,7 @@ function log() {
     try {
         logger.log('[appserver]',...arguments);
     } catch (e) {
-        console.log('[ERROR]', e);
+        console.log('[LOG-ERROR]', e);
         console.log('[appserver]', ...arguments);
     }
 }
@@ -293,7 +293,7 @@ function updateApp(dir, force) {
             env, // app server runtime environment
             add: (fn) => { app.use(fn) },
             log: {
-                new: (opt, exit) => {
+                new: (opt) => {
                     if (opt.dir) {
                         if (opt.dir.indexOf(".log-") == 0) {
                             opt.dir = opt.dir.substring(5);
@@ -302,7 +302,7 @@ function updateApp(dir, force) {
                     } else {
                         opt.dir = `${logdir}/${name}`;
                     }
-                    return logu.open(opt, exit);
+                    return logu.open(opt, exits);
                 },
                 log: function() { logger.log(lpre, ...arguments) },
                 emit: function() { logger.emit(lpre, ...arguments) },
