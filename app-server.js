@@ -16,6 +16,7 @@ const ipLocal = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
 const env = {};
 
 let datadir;
+let confdir;
 let logdir;
 let logger;
 
@@ -311,7 +312,9 @@ function updateApp(dir, force) {
             meta: meta,
             util: {
                 mkdir,
+                isfile,
                 lastmod,
+                confdir: (dn) => { return confdir },
                 datadir: (dn) => { return mkdir(`${datadir}/${name}/${dn}`) },
                 globdir: (dn) => { return mkdir(`${datadir}/server/${dn}`) }
             },
@@ -410,9 +413,11 @@ function init(options) {
     let apps = opts.apps || "apps";
     let logs = opts.logs || "logs";
     let data = opts.data || "data";
+    let conf = opts.conf || "conf";
     let port = opts.port || 8080;
     let portsec = opts.portsec;
 
+    confdir = mkdir(conf);
     datadir = data;
     logdir = logs;
     logger = logu.open({dir: `${logs}/server`}, exits);
