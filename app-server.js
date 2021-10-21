@@ -262,6 +262,10 @@ function updateApp(dir, force) {
             log({mod_unload: name, error});
         }
 
+        if (lastmod(`${dir}/.ignore`)) {
+            return;
+        }
+
         let init = function() {};
 
         // replace empty init() with loaded module, if present
