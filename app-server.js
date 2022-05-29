@@ -100,15 +100,20 @@ function isNotLocal(ip) {
 }
 
 function remoteIP(req) {
-    let fwd = req.headers['x-forwarded-for'],
+    let fwd = (req.headers['x-forwarded-for'] || '').split(','),
         sra = req.socket.remoteAddress,
-        cra = req.connection.remoteAddress,
-        ip = isNotLocal(fwd) || sra || cra || '',
-        ipa = ip.split(',');
-    // if (ip === '' || ipa.length > 1) {
-    //     logger.log({remote:ipa, fwd, sra, cra});
-    // }
-    return ipa;
+        cra = req.connection.remoteAddress;
+
+    return [ ...fwd, sra, cra ]
+        .map(addr => isNotLocal(addr))
+        .filter(addr => addr)
+        .map(addr => addr.indexOf('::ffff:') === 0 ? addr.slice(7) : addr)
+        .map(addr => addr.indexOf(':') > 0 ? addr.split(':').slice(0,4).join(':') : addr)
+        .sort((a,b) => {
+            let ia = a.indexOf(':') ? 0 : 1;
+            let ib = b.indexOf(':') ? 0 : 1;
+            return ia - ib;
+        });
 }
 
 function setup(req, res, next) {
