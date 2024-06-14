@@ -49,7 +49,7 @@ function lastmod(path) {
 function mkdir(path) {
     let root = "";
     path.split("/").forEach(dir => {
-        root = root ? `${root}/${dir}` : dir;
+        root = root ? `${root}/${dir}` : dir || '/';
         lastmod(root) || fs.mkdirSync(root);
     });
     return root;
