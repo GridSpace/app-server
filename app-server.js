@@ -228,6 +228,11 @@ function handleStatic(prefix, path, options) {
 }
 
 function updateApps(dir) {
+    if (dir === '.') {
+        log('serving single app on .');
+        return updateApp('.');
+    }
+
     if (!isdir(dir)) {
         log(`invalid apps directory "${dir}"`);
         return process.exit(1);
