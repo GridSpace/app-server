@@ -227,10 +227,10 @@ function handleStatic(prefix, path, options) {
     };
 }
 
-function updateApps(dir) {
-    if (dir === '.') {
-        log('serving single app on .');
-        return updateApp('.');
+function updateApps(dir, single) {
+    if (single) {
+        log(`serving single app on "${dir}"`);
+        return updateApp(dir);
     }
 
     if (!isdir(dir)) {
@@ -454,7 +454,7 @@ function init(options) {
 
     Object.assign(env, opts.env || opts);
 
-    updateApps(apps);
+    updateApps(apps, opts.single || apps === '.');
     setInterval(() => { updateApps(apps)}, 5000);
 
     if (!opts.managed) {
