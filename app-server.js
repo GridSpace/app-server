@@ -1,8 +1,9 @@
 /** Copyright Stewart Allen <sa@grid.space> -- All Rights Reserved */
 
-const fs = require('fs');
+const fs = require('fs-extra');
 const url = require('url');
 const logu = require('@gridspace/log-util').default;
+const PATH = require('path');
 const http = require('http');
 const https = require('https');
 const Connect = require('connect');
@@ -46,13 +47,9 @@ function lastmod(path) {
     }
 }
 
-function mkdir(path) {
-    let root = "";
-    path.split("/").forEach(dir => {
-        root = root ? `${root}/${dir}` : dir || '/';
-        lastmod(root) || fs.mkdirSync(root);
-    });
-    return root;
+function mkdir(fpath) {
+    fs.ensureDirSync(fpath);
+    return PATH.resolve(fpath);
 }
 
 function isdir(path) {
@@ -240,7 +237,7 @@ function updateApps(dir, single) {
 
     fs.readdirSync(dir).forEach(file => {
         let path = `${dir}/${file}`;
-        if (isfile(`${path}/app.json`) || isfile(`${path}/app.js`)) {
+        if (isfile(PATH.join(path,"app.json")) || isfile(PATH.join(path,"app.js"))) {
             updateApp(path);
         }
     });
@@ -255,10 +252,10 @@ function updateApp(dir, force) {
         if (!force && orec && orec.tmod >= tmod) return;
 
         let meta = tmod ? JSON.parse(fs.readFileSync(path)) : {};
-        let name = meta.name || dir.split("/").pop();
+        let name = meta.name || dir.split(PATH.sep).pop();
         let main = meta.main || "app.js";
         let host = meta.host || [ "*" ];
-        let hasMain = isfile(`${dir}/${main}`);
+        let hasMain = isfile(PATH.join(dir,main));
 
         if (name === "server") {
             throw `invalid name (reserved): ${name}`;
@@ -280,8 +277,7 @@ function updateApp(dir, force) {
 
         // replace empty init() with loaded module, if present
         if (hasMain) {
-            let root = dir.charAt(0) !== '/' ? `${process.cwd()}/` : '';
-            let mapp = require.resolve(`${root}${dir}/${main}`);
+            let mapp = require.resolve(PATH.join(PATH.resolve(dir),main));
             delete require.cache[mapp];
             init = require(mapp);
 
@@ -313,9 +309,9 @@ function updateApp(dir, force) {
                         if (opt.dir.indexOf(".log-") == 0) {
                             opt.dir = opt.dir.substring(5);
                         }
-                        opt.dir = `${logdir}/${name}/${opt.dir}`;
+                        opt.dir = PATH.join(logdir,name,opt.dir);
                     } else {
-                        opt.dir = `${logdir}/${name}`;
+                        opt.dir = PATH.join(logdir,name);
                     }
                     return logu.open(opt, exits);
                 },
@@ -329,8 +325,8 @@ function updateApp(dir, force) {
                 isfile,
                 lastmod,
                 confdir: (dn) => { return confdir },
-                datadir: (dn) => { return mkdir(`${datadir}/${name}/${dn}`) },
-                globdir: (dn) => { return mkdir(`${datadir}/server/${dn}`) }
+                datadir: (dn) => { return mkdir(PATH.join(datadir,name,dn)) },
+                globdir: (dn) => { return mkdir(PATH.join(datadir,"server",dn)) }
             },
             http: {
                 noCache,
@@ -343,7 +339,7 @@ function updateApp(dir, force) {
             },
             // pre=path prefix, path=relative to module root
             static: (pre, path) => {
-                nrec.app.use(handleStatic(pre, dir + "/" + path));
+                nrec.app.use(handleStatic(pre, PATH.join(dir,path)));
             },
             async: (path, fn) => {
                 nrec.app.use(handleAsync(path, fn));
@@ -387,7 +383,7 @@ function updateApp(dir, force) {
         if (typeof(meta.static) === 'object') {
             Object.entries(meta.static).forEach(entry => {
                 let [pre, path] = entry;
-                nrec.app.use(handleStatic(pre, dir + "/" + path));
+                nrec.app.use(handleStatic(pre, PATH.join(dir,path)));
             });
         }
 
@@ -447,8 +443,8 @@ function init(options) {
         const key = opts.pemkey || "key.pem";
         const cert = opts.pemcert || "cert.pem";
         addWSS(https.createServer({
-            key: fs.readFileSync(dir + '/' + key),
-            cert: fs.readFileSync(dir + '/' + cert)
+            key: fs.readFileSync(PATH.join(dir,key)),
+            cert: fs.readFileSync(PATH.join(dir,cert))
         }, chain).listen(opts.portsec));
     }
 
