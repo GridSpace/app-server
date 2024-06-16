@@ -425,7 +425,7 @@ function addWSS(server) {
 function init(options) {
     let ports = [];
     let opts = options || { };
-    let apps = opts.apps || "apps";
+    let apps = opts.apps || (opts.single ? "." : "apps");
     let logs = opts.logs || "logs";
     let data = opts.data || "data";
     let conf = opts.conf || "conf";
