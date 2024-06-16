@@ -227,7 +227,7 @@ function handleStatic(prefix, path, options) {
 function updateApps(dir, single) {
     if (single) {
         log(`serving single app on "${dir}"`);
-        return updateApp(dir);
+        return updateApp(dir,null,single);
     }
 
     if (!isdir(dir)) {
@@ -243,7 +243,7 @@ function updateApps(dir, single) {
     });
 }
 
-function updateApp(dir, force) {
+function updateApp(dir, force, single) {
     try {
         let dirs = moddirs;
         let orec = dirs[dir];
@@ -325,8 +325,13 @@ function updateApp(dir, force) {
                 isfile,
                 lastmod,
                 confdir: (dn) => { return confdir },
-                datadir: (dn) => { return mkdir(PATH.join(datadir,name,dn)) },
-                globdir: (dn) => { return mkdir(PATH.join(datadir,"server",dn)) }
+                globdir: (dn) => { return mkdir(PATH.join(datadir,"server",dn)) },
+                datadir: (dn) => { return single ?
+                    // thank a deeply broken windows filesystem for this hack
+                    // which allows electron apps to run (deep mkdirs fail with some names)
+                    mkdir(PATH.join(datadir,dn)) :
+                    mkdir(PATH.join(datadir,name,dn))
+                },
             },
             http: {
                 noCache,
@@ -498,6 +503,10 @@ function init(options) {
     }
 
     log(`app-server running: ports=[${ports}] apps=[${apps}] data=[${data}] logs=[${logs}]`);
+
+    if (opts.dryrun) {
+        process.exit();
+    }
 }
 
 if (!module.parent) {
@@ -512,7 +521,9 @@ if (!module.parent) {
         portsec: args.https,
         certdir: args.certdir,
         pemkey: args.pemkey,
-        pemcert: args.pemcert
+        pemcert: args.pemcert,
+        dryrun: args.dryrun,
+        single: args.single
     });
 } else {
     module.exports = init;
