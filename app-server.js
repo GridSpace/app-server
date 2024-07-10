@@ -469,6 +469,9 @@ function addOpenDebug() {
         ];
         socket.write(list.join('\n') + `\n`);
         socket.end();
+        socket.on('finish', () => {
+            socket.destroy();
+        });
         log('dumped open requests/sockets for', socket.address());
     }).listen(8675, '127.0.0.1', () => {
         log(`open request debugger on 8675`);
