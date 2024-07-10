@@ -1,6 +1,7 @@
 /** Copyright Stewart Allen <sa@grid.space> -- All Rights Reserved */
 
 const fs = require('fs-extra');
+const net = require('net');
 const url = require('url');
 const logu = require('@gridspace/log-util').default;
 const PATH = require('path');
@@ -20,6 +21,10 @@ let datadir;
 let confdir;
 let logdir;
 let logger;
+let openreqs = []; // open / current requests
+let opensock = []; // open / current web sockets
+let totreqs = 0;
+let totsock = 0;
 
 Array.prototype.contains = function(v) {
     return this.indexOf(v) >= 0;
@@ -113,6 +118,32 @@ function remoteIP(req) {
         });
 }
 
+// track current / open totreqs
+function openReq(req) {
+    openreqs.push(req);
+    req.on('close', () => { closeReq(req) });
+    req.on('finish', () => { closeReq(req) });
+}
+
+function closeReq(req) {
+    let io = openreqs.indexOf(req);
+    if (io >= 0) {
+        openreqs.splice(io,1);
+        totreqs++;
+    }
+}
+
+function openSock(sock) {
+    opensock.push(sock);
+    sock.on('close', () => {
+        let io = opensock.indexOf(sock);
+        if (io >= 0) {
+            opensock.splice(io, 1);
+            totsock++;
+        }
+    });
+}
+
 function setup(req, res, next) {
     const parsed = url.parse(req.url, true);
     const ips = remoteIP(req);
@@ -142,6 +173,7 @@ function setup(req, res, next) {
         req.headers['user-agent'] || ''
     ]);
 
+    openReq(req);
     next();
 }
 
@@ -416,9 +448,30 @@ function addWSS(server) {
             socket.destroy();
         } else {
             wss.handleUpgrade(request, socket, head, ws => {
-              fn(ws, request);
+                fn(ws, request);
+                openSock(ws);
             });
         }
+    });
+}
+
+// add localhost tcp listener to dump open requests (with timing)
+function addOpenDebug() {
+    const server = net.createServer(socket => {
+        let list = [
+            `open sockets: ${opensock.length}`,
+            `done sockets: ${totsock}`,
+            `open request: ${openreqs.length}`,
+            `done request: ${totreqs}`,
+            ...openreqs.map(req => {
+                return req.url;
+            })
+        ];
+        socket.write(list.join('\n') + `\n`);
+        socket.end();
+        log('dumped open requests/sockets for', socket.address());
+    }).listen(8675, '127.0.0.1', () => {
+        log(`open request debugger on 8675`);
     });
 }
 
@@ -506,7 +559,10 @@ function init(options) {
 
     if (opts.dryrun) {
         process.exit();
+    } else {
+        addOpenDebug();
     }
+
 }
 
 if (!module.parent) {
