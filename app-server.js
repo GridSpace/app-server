@@ -118,6 +118,16 @@ function remoteIP(req) {
         });
 }
 
+function checkOpenReqs() {
+    let now = Date.now();
+    for (let req of openreqs) {
+        if (!req.reported && now - req.start > 5000) {
+            req.reported = true;
+            log({ slow: req.app.path });
+        }
+    }
+}
+
 // track current / open totreqs
 function openReq(req) {
     openreqs.push(req);
@@ -149,6 +159,7 @@ function setup(req, res, next) {
     const ips = remoteIP(req);
 
     req.app = req.gs = {
+        start: Date.now(),
         ip: ips[0],
         ips: ips,
         path: parsed.pathname,
@@ -513,6 +524,7 @@ function init(options) {
 
     updateApps(apps, opts.single || apps === '.');
     setInterval(() => { updateApps(apps)}, 5000);
+    setInterval(checkOpenReqs, 5000);
 
     if (!opts.managed) {
         let startTime = Date.now();
