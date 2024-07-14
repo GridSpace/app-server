@@ -121,8 +121,8 @@ function remoteIP(req) {
 function checkOpenReqs() {
     let now = Date.now();
     for (let req of openreqs) {
-        if (!req.reported && now - req.start > 5000) {
-            req.reported = true;
+        if (!req.app.reported && now - req.app.start > 5000) {
+            req.app.reported = true;
             log({ slow: req.app.path });
         }
     }
