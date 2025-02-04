@@ -484,6 +484,8 @@ function addOpenDebug() {
             socket.destroy();
         });
         log('dumped open requests/sockets for', socket.address());
+    }).on('error', error => {
+        log('error starting request debugger', error.message);
     }).listen(8675, '127.0.0.1', () => {
         log(`open request debugger on 8675`);
     });
