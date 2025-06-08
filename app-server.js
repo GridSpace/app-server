@@ -576,7 +576,7 @@ function init(options) {
 
     if (opts.dryrun) {
         process.exit();
-    } else {
+    } else if (opts.open_debug || opts['open-debug']) {
         addOpenDebug();
     }
 
@@ -584,7 +584,7 @@ function init(options) {
 
 if (!module.parent) {
     let args = require('minimist')(process.argv.slice(2));
-
+console.log({ args });
     init({
         env: args,
         logs: args.logs,
@@ -596,7 +596,8 @@ if (!module.parent) {
         pemkey: args.pemkey,
         pemcert: args.pemcert,
         dryrun: args.dryrun,
-        single: args.single
+        single: args.single,
+        open_debug: args.open_debug || args['open-debug']
     });
 } else {
     module.exports = init;
