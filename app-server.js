@@ -399,9 +399,10 @@ function updateApp(dir, force, single) {
                 nrec.wss[path] = fn;
             },
             on: {
+                exit: (fn) => { exits.push(fn) },
                 reload: (fn) => { nrec.unload = fn },
                 test: (fn) => { nrec.test = fn },
-                exit: (fn) => { exits.push(fn) }
+                testv: (fn) => { nrec.testv = fn },
             }
         });
 
@@ -414,11 +415,14 @@ function updateApp(dir, force, single) {
                     return next();
                 }
                 let host = req.headers.host;
+                let refr = req.headers.referer || '';
                 if (mod.host.indexOf(host) >= 0 || mod.host.indexOf('*') >= 0) {
+                    let refq = refr.split('?')[1];
                     // allow module to require http or https (blank for both)
                     let secok = ( mod.meta.secure === undefined || mod.meta.secure === req.app.secure );
                     // allow module to optionally test a request (like cookie switching)
-                    let modok = ( !mod.test || mod.test(req) );
+                    let modok = ( !mod.test || mod.test(req) || (mod.testv && mod.testv(refq)) ) ? true : false;
+                    // console.log({ modok, secok, ...mod.meta, refr, refq, url: req.url });
                     if (modok && secok) {
                         return mod.app.handle(req, res, next);
                     }
@@ -584,7 +588,7 @@ function init(options) {
 
 if (!module.parent) {
     let args = require('minimist')(process.argv.slice(2));
-console.log({ args });
+    console.log({ args });
     init({
         env: args,
         logs: args.logs,
