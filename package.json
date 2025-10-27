@@ -1,6 +1,6 @@
 {
     "name": "@gridspace/app-server",
-    "version": "0.0.18",
+    "version": "0.0.19",
     "license": "MIT",
     "private": false,
     "author": "Stewart Allen <sa@grid.space>",
@@ -19,7 +19,7 @@
         "app-server-run.js"
     ],
     "dependencies": {
-        "@gridspace/log-util": "^0.0.5",
+        "@gridspace/log-util": "github:gridspace/log-util#v0.0.5",
         "compression": "^1.7.2",
         "connect": "^3.6.6",
         "fs-extra": "^11.2.0",
