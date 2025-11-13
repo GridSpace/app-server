@@ -253,6 +253,7 @@ function handleStatic(prefix, path, options) {
     let handler = ServeStatic(path, options);
     return function(req, res, next) {
         if (prefix && req.url.indexOf(prefix) === 0) {
+            let ourl = req.url;
             let nurl = req.url.substring(prefix.length);
             if (nurl === '') {
                 nurl = "/";
@@ -260,7 +261,11 @@ function handleStatic(prefix, path, options) {
                 nurl = `/${nurl}`;
             }
             req.url = nurl;
-            handler(req, res, next);
+            function fall_next() {
+                req.url = ourl;
+                next();
+            }
+            handler(req, res, fall_next);
         } else {
             next();
         }

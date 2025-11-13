@@ -1,6 +1,6 @@
 {
     "name": "@gridspace/app-server",
-    "version": "0.0.19",
+    "version": "0.0.20",
     "license": "MIT",
     "private": false,
     "author": "Stewart Allen <sa@grid.space>",
@@ -26,7 +26,7 @@
         "minimist": "^1.2.5",
         "moment": "^2.22.0",
         "request": "^2.87.0",
-        "serve-static": "^1.14.1",
+        "serve-static": "^2.2.0",
         "ws": "^8.18.2"
     }
 }
